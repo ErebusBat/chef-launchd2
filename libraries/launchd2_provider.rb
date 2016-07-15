@@ -27,6 +27,7 @@ require "forwardable"
 class Chef
   class Provider
     class Launchd2 < Chef::Provider
+      include ChefConfig
       extend Forwardable
       provides :launchd2, os: "darwin"
 
@@ -36,7 +37,6 @@ class Chef
         :group,
         :label,
         :mode,
-        :owner,
         :path,
         :source,
         :session_type,
@@ -50,10 +50,16 @@ class Chef
 
       def gen_path_from_type
         types = {
-          "daemon" => "/Library/LaunchDaemons/#{label}.plist",
-          "agent" => "/Library/LaunchAgents/#{label}.plist",
+          "daemon"     => "/Library/LaunchDaemons/#{label}.plist",
+          "agent"      => "/Library/LaunchAgents/#{label}.plist",
+          "user_agent" => "/Users/#{new_resource.username}/Library/LaunchAgents/#{label}.plist",
         }
         types[type]
+      end
+
+      def owner
+        return new_resource if new_resource.owner
+        new_resource.username
       end
 
       def action_create
@@ -139,8 +145,16 @@ class Chef
           :create, :create_if_missing, :delete, :enable, :disable
         ) do |a|
           type = new_resource.type
-          a.assertion { %w{daemon agent}.include?(type.to_s) }
-          error_msg = "type must be daemon or agent."
+
+          a.assertion { %w{daemon agent user_agent}.include?(type.to_s) }
+          error_msg = "type must be daemon, agent, or user_agent."
+          a.failure_message Chef::Exceptions::ValidationFailed, error_msg
+
+          a.assertion {
+            next true unless type.to_s == "user_agent"
+            new_resource.username.to_s.size > 0
+          }
+          error_msg = "username(#{new_resource.username}) must be specified if type=user_agent."
           a.failure_message Chef::Exceptions::ValidationFailed, error_msg
         end
       end
@@ -156,7 +170,7 @@ class Chef
 
       def gen_hash
         return nil unless new_resource.program || new_resource.program_arguments
-        {
+        plist_hash = {
           "label" => "Label",
           "program" => "Program",
           "program_arguments" => "ProgramArguments",
@@ -202,6 +216,11 @@ class Chef
         }.each_with_object({}) do |(key, val), memo|
           memo[val] = new_resource.send(key) if new_resource.send(key)
         end
+
+        # User agents always run as the user owning them, so don't emit this key
+        plist_hash.delete("UserName") if new_resource.type == "user_agent"
+
+        plist_hash
       end
     end
   end

@@ -90,10 +90,10 @@ class Chef
 
       property :type, String, default: "daemon", coerce: proc { |type|
         type = type ? type.downcase : "daemon"
-        types = %w{daemon agent}
+        types = %w{daemon agent user_agent}
 
         unless types.include?(type)
-          error_msg = "type must be daemon or agent"
+          error_msg = "type must be daemon, agent, or user_agent."
           raise Chef::Exceptions::ValidationFailed, error_msg
         end
         type
