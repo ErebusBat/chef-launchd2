@@ -190,7 +190,7 @@ class Chef
           "limit_load_from_hosts" => "LimitLoadFromHosts",
           "limit_load_to_hosts" => "LimitLoadToHosts",
           "limit_load_to_session_type" => "LimitLoadToSessionType",
-          "low_priority_io" => "LowPriorityIO",
+          "low_priority_io" => new_resource.process_type == "Background" ? "LowPriorityBackgroundIO" : "LowPriorityIO",
           "mach_services" => "MachServices",
           "nice" => "Nice",
           "on_demand" => "OnDemand",
