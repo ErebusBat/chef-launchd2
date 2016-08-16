@@ -41,20 +41,12 @@ class Chef
         :source,
         :session_type,
         :type,
+        :gen_path_from_type,
       ]
 
       def load_current_resource
         current_resource = Chef::Resource::Launchd.new(new_resource.name)
         @path = path ? path : gen_path_from_type
-      end
-
-      def gen_path_from_type
-        types = {
-          "daemon"     => "/Library/LaunchDaemons/#{label}.plist",
-          "agent"      => "/Library/LaunchAgents/#{label}.plist",
-          "user_agent" => "/Users/#{new_resource.username}/Library/LaunchAgents/#{label}.plist",
-        }
-        types[type]
       end
 
       def owner

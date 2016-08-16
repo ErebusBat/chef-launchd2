@@ -140,6 +140,15 @@ class Chef
       property :wait_for_debugger, [ TrueClass, FalseClass ]
       property :watch_paths, Array
       property :working_directory, String
+
+      def gen_path_from_type
+        types = {
+          "daemon"     => "/Library/LaunchDaemons/#{label}.plist",
+          "agent"      => "/Library/LaunchAgents/#{label}.plist",
+          "user_agent" => "/Users/#{username}/Library/LaunchAgents/#{label}.plist",
+        }
+        types[type]
+      end
     end
   end
 end
