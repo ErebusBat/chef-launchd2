@@ -145,7 +145,7 @@ class Chef
         types = {
           "daemon"     => "/Library/LaunchDaemons/#{label}.plist",
           "agent"      => "/Library/LaunchAgents/#{label}.plist",
-          "user_agent" => "/Users/#{username}/Library/LaunchAgents/#{label}.plist",
+          "user_agent" => ::File.expand_path("~/Library/LaunchAgents/#{label}.plist"),
         }
         types[type]
       end
